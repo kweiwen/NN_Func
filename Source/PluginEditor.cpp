@@ -33,8 +33,8 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
         
     // init local function
     // import module
-    auto local_calc = pybind11::module_::import("local_calc");
-    int_decode_data = local_calc.attr("add")(5, 4).cast<int>();
+    //auto local_calc = pybind11::module_::import("local_calc");
+    //int_decode_data = local_calc.attr("add")(5, 4).cast<int>();
 
     // init external function
     // add path 
@@ -44,7 +44,7 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     auto module = pybind11::module_::import("calc");
     ext_decode_data = module.attr("add")(66, 6).cast<int>();
 
-    DBG(int_decode_data);
+    //DBG(int_decode_data);
     DBG(ext_decode_data);
     DBG("TEST");
 }
