@@ -22,7 +22,7 @@ PYBIND11_EMBEDDED_MODULE(local_calc, m) {
 }
 
 //==============================================================================
-NewProjectAudioProcessorEditor::NewProjectAudioProcessorEditor (NewProjectAudioProcessor& p)
+nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     // Make sure that before the constructor has finished, you've set the
@@ -49,12 +49,12 @@ NewProjectAudioProcessorEditor::NewProjectAudioProcessorEditor (NewProjectAudioP
     DBG("TEST");
 }
 
-NewProjectAudioProcessorEditor::~NewProjectAudioProcessorEditor()
+nnAudioProcessorEditor::~nnAudioProcessorEditor()
 {
 }
 
 //==============================================================================
-void NewProjectAudioProcessorEditor::paint (juce::Graphics& g)
+void nnAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
@@ -66,7 +66,7 @@ void NewProjectAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText (std::to_string(ext_decode_data),  getLocalBounds(), juce::Justification::centredBottom, 1);
 }
 
-void NewProjectAudioProcessorEditor::resized()
+void nnAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
