@@ -10,6 +10,10 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include <vector>
+#include <pybind11/embed.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 //==============================================================================
 /**
@@ -29,8 +33,12 @@ private:
     // access the processor object that created it.
     nnAudioProcessor& audioProcessor;
 
+    void on_decode_room_impulse_response(juce::String fp);
+    std::vector<std::vector<std::vector<float>>> convert_pylist_to_vector_3d(pybind11::list pylist);
+    std::vector<std::vector<std::vector<float>>> absorption_coefs;
+    std::vector<std::vector<float>> transition_coefs;
+    
     int int_decode_data;
-    int ext_decode_data;
-
+    float ext_decode_data;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (nnAudioProcessorEditor)
 };
