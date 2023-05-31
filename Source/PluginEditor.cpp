@@ -24,7 +24,8 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    addAndMakeVisible(table);
+    setSize(400, 300);
 
     pybind11::scoped_interpreter guard{};
         
@@ -61,14 +62,15 @@ nnAudioProcessorEditor::~nnAudioProcessorEditor()
 //==============================================================================
 void nnAudioProcessorEditor::paint (juce::Graphics& g)
 {
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    //g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
-    g.setColour (juce::Colours::white);
-    g.setFont (15.0f);
+    //g.setColour (juce::Colours::white);
+    //g.setFont (15.0f);
 
-    g.drawFittedText ("Hello World!",                   getLocalBounds(), juce::Justification::centred, 1);
-    g.drawFittedText (juce::String(ext_decode_data),  getLocalBounds(), juce::Justification::centredBottom, 1);
+    //g.drawFittedText ("Hello World!",                   getLocalBounds(), juce::Justification::centred, 1);
+    //g.drawFittedText (juce::String(ext_decode_data),  getLocalBounds(), juce::Justification::centredBottom, 1);
 }
 
 void nnAudioProcessorEditor::on_decode_room_impulse_response(juce::String fp)
@@ -109,4 +111,5 @@ void nnAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+    table.setBounds(getLocalBounds());
 }

@@ -4,6 +4,8 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="AYoNYp" name="NN_Function">
     <GROUP id="{C5CD895D-71FB-2AA4-B3D8-8EF416169CB4}" name="Source">
+      <FILE id="xTzxGu" name="TableListBoxTutorial.h" compile="0" resource="0"
+            file="Source/TableListBoxTutorial.h"/>
       <FILE id="orOK8J" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="O49eH2" name="PluginProcessor.h" compile="0" resource="0"
