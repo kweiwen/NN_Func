@@ -41,8 +41,6 @@ private:
     std::vector<std::vector<std::vector<float>>> absorption_coefs;
     std::vector<std::vector<float>> transition_coefs;
 
-    //pybind11::module external_module;
-    
     int int_decode_data;
     float ext_decode_data;
     CoefficientTableComponent table;
