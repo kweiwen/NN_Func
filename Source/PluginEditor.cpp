@@ -30,29 +30,6 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     pybind11::scoped_interpreter guard{};
         
     on_decode_room_impulse_response("");
-
-    for (size_t i = 0; i < absorption_coefs.size(); ++i) 
-    {
-        for (size_t j = 0; j < absorption_coefs[i].size(); ++j) 
-        {
-            for (size_t k = 0; k < absorption_coefs[i][j].size(); ++k) 
-            {
-                DBG("Element at index (" << i << ", " << j << ", " << k << ") = " << absorption_coefs[i][j][k]);
-            }
-        }
-    }
-
-    for (size_t j = 0; j < transition_coefs.size(); ++j)
-    {
-        for (size_t k = 0; k < transition_coefs[j].size(); ++k)
-        {
-            DBG("Element at index (" << ", " << j << ", " << k << ") = " << transition_coefs[j][k]);
-        }
-    }
-
-    //DBG(int_decode_data);
-    //DBG(ext_decode_data);
-    //DBG("TEST");
 }
 
 nnAudioProcessorEditor::~nnAudioProcessorEditor()
@@ -63,14 +40,6 @@ nnAudioProcessorEditor::~nnAudioProcessorEditor()
 void nnAudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    //g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
-    //g.setColour (juce::Colours::white);
-    //g.setFont (15.0f);
-
-    //g.drawFittedText ("Hello World!",                   getLocalBounds(), juce::Justification::centred, 1);
-    //g.drawFittedText (juce::String(ext_decode_data),  getLocalBounds(), juce::Justification::centredBottom, 1);
 }
 
 void nnAudioProcessorEditor::on_decode_room_impulse_response(juce::String fp)
@@ -98,6 +67,28 @@ void nnAudioProcessorEditor::on_decode_room_impulse_response(juce::String fp)
     for (size_t band = 0; band < 11; band++)
     {
         table.update_entry(5, band+1, transition_coefs[band]);
+    }
+}
+
+void nnAudioProcessorEditor::disp_coefficient()
+{
+    for (size_t i = 0; i < absorption_coefs.size(); ++i)
+    {
+        for (size_t j = 0; j < absorption_coefs[i].size(); ++j)
+        {
+            for (size_t k = 0; k < absorption_coefs[i][j].size(); ++k)
+            {
+                DBG("Element at index (" << i << ", " << j << ", " << k << ") = " << absorption_coefs[i][j][k]);
+            }
+        }
+    }
+
+    for (size_t j = 0; j < transition_coefs.size(); ++j)
+    {
+        for (size_t k = 0; k < transition_coefs[j].size(); ++k)
+        {
+            DBG("Element at index (" << ", " << j << ", " << k << ") = " << transition_coefs[j][k]);
+        }
     }
 }
 

@@ -35,6 +35,7 @@ private:
     nnAudioProcessor& audioProcessor;
 
     void on_decode_room_impulse_response(juce::String fp);
+    void disp_coefficient();
     std::vector<std::vector<std::vector<float>>> convert_pylist_to_vector_3d(pybind11::list pylist);
     std::vector<std::vector<std::vector<float>>> absorption_coefs;
     std::vector<std::vector<float>> transition_coefs;
@@ -42,17 +43,6 @@ private:
     int int_decode_data;
     float ext_decode_data;
     CoefficientTableComponent table;
-
-
-    //juce::ListBox* listBox;
-    //std::vector<std::vector<float>> myData;
-    //MyListBoxModel myModel;
-    //juce::TableListBox table{ {}, nullptr };
-    //MyTableModel tableModel;
-    //std::vector<std::vector<float>> data = { {1.0f, 2.0f, 3.0f, 4.0f, 5.0f},
-    //                                         {1.1f, 2.1f, 3.1f, 4.1f, 5.1f},
-    //                                         {1.2f, 2.2f, 3.2f, 4.2f, 5.2f} };
-
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (nnAudioProcessorEditor)
 };
