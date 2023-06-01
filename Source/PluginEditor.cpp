@@ -26,6 +26,11 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     addAndMakeVisible(table);
+    addAndMakeVisible(btn_load_file);
+    addAndMakeVisible(btn_convert_parameters);
+
+    btn_load_file.onClick = [this] { openFileChooser(); };
+
     setSize(800, 600);
 
     pybind11::scoped_interpreter guard{};
@@ -105,7 +110,6 @@ void nnAudioProcessorEditor::disp_coefficient()
     }
 }
 
-
 std::vector<std::vector<std::vector<float>>> nnAudioProcessorEditor::convert_pylist_to_vector_3d(pybind11::list pylist)
 {
     std::vector<std::vector<std::vector<float>>> output_data(pylist.size());
@@ -125,9 +129,20 @@ std::vector<std::vector<std::vector<float>>> nnAudioProcessorEditor::convert_pyl
     return output_data;
 }
 
+void nnAudioProcessorEditor::openFileChooser()
+{
+    const auto callback = [this](const juce::FileChooser& chooser)
+    {
+        //loadData(chooser.getResult());
+    };
+    fileChooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, callback);
+}
+
 void nnAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
-    table.setBounds(getLocalBounds());
+    auto area = getLocalBounds();
+    auto buttonArea = getLocalBounds().removeFromTop(50).reduced(10);
+    btn_load_file.setBounds(buttonArea.removeFromLeft(buttonArea.getWidth() / 2).reduced(2));
+    btn_convert_parameters.setBounds(buttonArea.reduced(2));
+    table.setBounds(getLocalBounds().removeFromBottom(area.getHeight() - 50));
 }

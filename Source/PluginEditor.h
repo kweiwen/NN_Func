@@ -40,10 +40,13 @@ private:
     std::vector<std::vector<std::vector<float>>> convert_pylist_to_vector_3d(pybind11::list pylist);
     std::vector<std::vector<std::vector<float>>> absorption_coefs;
     std::vector<std::vector<float>> transition_coefs;
+    void openFileChooser();
 
     int int_decode_data;
     float ext_decode_data;
     CoefficientTableComponent table;
-
+    juce::TextButton btn_load_file{ "Load File" };
+    juce::TextButton btn_convert_parameters{ "Convert Parameters" };
+    juce::FileChooser fileChooser{ "Browse for TableData", juce::File::getSpecialLocation(juce::File::invokedExecutableFile) };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (nnAudioProcessorEditor)
 };
