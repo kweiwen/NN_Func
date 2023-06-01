@@ -35,7 +35,7 @@ private:
     nnAudioProcessor& audioProcessor;
 
     void init_environment();
-    void on_decode_room_impulse_response(juce::String fp);
+    void on_decode_room_impulse_response(std::string fp, float ch1, float ch2, float ch3, float ch4);
     void disp_coefficient();
     std::vector<std::vector<std::vector<float>>> convert_pylist_to_vector_3d(pybind11::list pylist);
     std::vector<std::vector<std::vector<float>>> absorption_coefs;
