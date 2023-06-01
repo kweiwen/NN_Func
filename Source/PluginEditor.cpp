@@ -25,7 +25,7 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     addAndMakeVisible(table);
-    setSize(400, 300);
+    setSize(1200, 600);
 
     pybind11::scoped_interpreter guard{};
         
@@ -80,6 +80,7 @@ void nnAudioProcessorEditor::on_decode_room_impulse_response(juce::String fp)
     sys.attr("path").attr("insert")(0, "D:\\Project\\NN_Func\\Source");
     // import module
     auto module = pybind11::module_::import("external");
+
     pybind11::list pyList = module.attr("demo")().cast<pybind11::list>();
     auto data = convert_pylist_to_vector_3d(pyList);
     // assign data to private member
