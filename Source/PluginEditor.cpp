@@ -133,6 +133,7 @@ void nnAudioProcessorEditor::openFileChooser()
 {
     const auto callback = [this](const juce::FileChooser& chooser)
     {
+        DBG("" << chooser.getResult().getFullPathName());
         //loadData(chooser.getResult());
     };
     fileChooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, callback);

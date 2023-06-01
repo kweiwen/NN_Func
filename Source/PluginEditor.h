@@ -47,6 +47,6 @@ private:
     CoefficientTableComponent table;
     juce::TextButton btn_load_file{ "Load File" };
     juce::TextButton btn_convert_parameters{ "Convert Parameters" };
-    juce::FileChooser fileChooser{ "Browse for TableData", juce::File::getSpecialLocation(juce::File::invokedExecutableFile) };
+    juce::FileChooser fileChooser{ "Browse for Room Imoulse Response Data", juce::File::getSpecialLocation(juce::File::invokedExecutableFile) };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (nnAudioProcessorEditor)
 };
