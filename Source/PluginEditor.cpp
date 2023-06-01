@@ -25,7 +25,7 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     addAndMakeVisible(table);
-    setSize(1200, 600);
+    setSize(800, 600);
 
     pybind11::scoped_interpreter guard{};
         
@@ -51,8 +51,8 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     }
 
     //DBG(int_decode_data);
-    DBG(ext_decode_data);
-    DBG("TEST");
+    //DBG(ext_decode_data);
+    //DBG("TEST");
 }
 
 nnAudioProcessorEditor::~nnAudioProcessorEditor()
@@ -86,6 +86,19 @@ void nnAudioProcessorEditor::on_decode_room_impulse_response(juce::String fp)
     // assign data to private member
     absorption_coefs.assign(data.begin(), data.begin() + 4);
     transition_coefs = data[4];
+
+    for (size_t channel = 0; channel < 4; channel++)
+    {
+        for (size_t band = 0; band < 11; band++)
+        {
+            table.update_entry(channel+1, band+1, absorption_coefs[channel][band]);
+        }
+    }
+
+    for (size_t band = 0; band < 11; band++)
+    {
+        table.update_entry(5, band+1, transition_coefs[band]);
+    }
 }
 
 

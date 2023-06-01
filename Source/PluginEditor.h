@@ -41,7 +41,7 @@ private:
     
     int int_decode_data;
     float ext_decode_data;
-    TableTutorialComponent table;
+    CoefficientTableComponent table;
 
 
     //juce::ListBox* listBox;

@@ -14,30 +14,40 @@ public:
     std::vector<float> data;
 };
 
-class TableTutorialComponent    : public juce::Component,
+class CoefficientTableComponent : public juce::Component, 
                                   public juce::TableListBoxModel
 {
 public:
-    TableTutorialComponent()
+    CoefficientTableComponent()
     {
-        coefficients = { {0,1,2,3,4,5},{0,1,2,3,4,5} };
-
-        for (const auto& vec : coefficients)
-            entries.push_back(DataEntry(vec));
-
         addAndMakeVisible(table);
         table.setColour (juce::ListBox::outlineColourId, juce::Colours::grey); 
-        table.setOutlineThickness (1);
-        table.getHeader().addColumn("channel",  1, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("band",     2, 50, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("a0",       3, 50, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("a1",       4, 50, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("a2",       5, 50, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("b0",       6, 50, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("b1",       7, 50, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("b2",       8, 50, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.setOutlineThickness (0);
+        table.getHeader().addColumn("channel",  1, 80,  50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("band",     2, 80,  50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("a0",       3, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("a1",       4, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("a2",       5, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("b0",       6, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("b1",       7, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("b2",       8, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
 
         resized();
+    }
+
+    void clean_entry()
+    {
+        entries.clear();
+    }
+
+    void update_entry(int channel, int band, std::vector<float> input_data)
+    {
+        if (input_data.size() == 6)
+        {
+            input_data.insert(input_data.begin(), channel);
+            input_data.insert(input_data.begin() + 1, band);
+            entries.push_back(DataEntry(input_data));
+        }
     }
 
     int getNumRows() override
@@ -73,15 +83,14 @@ public:
 
     void resized() override
     {
-        table.setBoundsInset (juce::BorderSize<int> (8));
+        table.setBoundsInset (juce::BorderSize<int> (10));
     }
 
 private:
     juce::TableListBox table  { {}, this };
     juce::Font font           { 14.0f };
 
-    std::vector<std::vector<float>> coefficients;
     std::vector<DataEntry> entries;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TableTutorialComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CoefficientTableComponent)
 };
