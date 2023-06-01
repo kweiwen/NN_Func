@@ -10,6 +10,7 @@
 #include "PluginEditor.h"
 
 #include "JuceHeader.h"
+#include <filesystem>
 
 PYBIND11_EMBEDDED_MODULE(local_calc, m) {
     // `m` is a `py::module_` which is used to bind functions and classes
@@ -28,8 +29,9 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     setSize(800, 600);
 
     pybind11::scoped_interpreter guard{};
-        
+    init_environment();
     on_decode_room_impulse_response("");
+    disp_coefficient();
 }
 
 nnAudioProcessorEditor::~nnAudioProcessorEditor()
@@ -42,16 +44,27 @@ void nnAudioProcessorEditor::paint (juce::Graphics& g)
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 }
 
-void nnAudioProcessorEditor::on_decode_room_impulse_response(juce::String fp)
+void nnAudioProcessorEditor::init_environment()
 {
-    // setup environment path
-    auto sys = pybind11::module_::import("sys");
-    sys.attr("path").attr("insert")(0, "D:\\Project\\NN_Func\\Source");
-    // import module
-    auto module = pybind11::module_::import("external");
+    // external.py is located at ~/NN_Func/Source
+    std::filesystem::path currentPath = std::filesystem::current_path();
+    std::filesystem::path grandpaPath = currentPath.parent_path().parent_path();
+    std::filesystem::path modulePath = grandpaPath / "Source";
 
-    pybind11::list pyList = module.attr("demo")().cast<pybind11::list>();
+    // edit environment path
+    auto sys = pybind11::module_::import("sys");
+    sys.attr("path").attr("insert")(0, modulePath.lexically_normal().string());
+}
+
+void nnAudioProcessorEditor::on_decode_room_impulse_response(juce::String fp)
+{    
+    // import module
+    auto external_module = pybind11::module::import("external");
+
+    // execute python function
+    pybind11::list pyList = external_module.attr("demo")(fp).cast<pybind11::list>();
     auto data = convert_pylist_to_vector_3d(pyList);
+
     // assign data to private member
     absorption_coefs.assign(data.begin(), data.begin() + 4);
     transition_coefs = data[4];
