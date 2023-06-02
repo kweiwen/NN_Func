@@ -48,6 +48,7 @@ public:
             input_data.insert(input_data.begin() + 1, band);
             entries.push_back(DataEntry(input_data));
         }
+        table.updateContent();
     }
 
     int getNumRows() override

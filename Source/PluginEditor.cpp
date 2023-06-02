@@ -30,13 +30,8 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     addAndMakeVisible(btn_convert_parameters);
 
     btn_load_file.onClick = [this] { openFileChooser(); };
-
     setSize(800, 600);
 
-    pybind11::scoped_interpreter guard{};
-    init_environment();
-    on_decode_room_impulse_response("C:\\Python37\\Lib\\DecayFitNet\\data\\exampleRIRs\\singleslope_00006_sh_rirs.wav", 1021, 2029, 3001, 4093);
-    disp_coefficient();
 }
 
 nnAudioProcessorEditor::~nnAudioProcessorEditor()
@@ -133,11 +128,20 @@ void nnAudioProcessorEditor::openFileChooser()
 {
     const auto callback = [this](const juce::FileChooser& chooser)
     {
-        DBG("" << chooser.getResult().getFullPathName());
-        //loadData(chooser.getResult());
+        //DBG("" << chooser.getResult().getFullPathName());
+        loadData();
     };
     fileChooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, callback);
 }
+
+void nnAudioProcessorEditor::loadData()
+{
+    pybind11::scoped_interpreter guard{};
+    init_environment();
+    on_decode_room_impulse_response("C:\\Python37\\Lib\\DecayFitNet\\data\\exampleRIRs\\singleslope_00006_sh_rirs.wav", 1021, 2029, 3001, 4093);
+    disp_coefficient();
+}
+
 
 void nnAudioProcessorEditor::resized()
 {

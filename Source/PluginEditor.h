@@ -41,6 +41,7 @@ private:
     std::vector<std::vector<std::vector<float>>> absorption_coefs;
     std::vector<std::vector<float>> transition_coefs;
     void openFileChooser();
+    void loadData();
 
     int int_decode_data;
     float ext_decode_data;
