@@ -9,6 +9,9 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <pybind11/embed.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 //==============================================================================
 /**
@@ -55,6 +58,8 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+
+    pybind11::scoped_interpreter guard;
 
 private:
     //==============================================================================

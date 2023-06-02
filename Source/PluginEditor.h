@@ -11,9 +11,6 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include <vector>
-#include <pybind11/embed.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 #include "TableListBoxTutorial.h"
 
 //==============================================================================
@@ -43,8 +40,7 @@ private:
     void openFileChooser();
     void loadData();
 
-    pybind11::scoped_interpreter guard;
-    pybind11::object external_module;
+    //pybind11::object external_module;
 
     int int_decode_data;
     float ext_decode_data;

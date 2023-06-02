@@ -23,7 +23,7 @@ PYBIND11_EMBEDDED_MODULE(local_calc, m) {
 nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    init_environment();
+    //init_environment();
 
 
     // Make sure that before the constructor has finished, you've set the
@@ -39,6 +39,7 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
 
 nnAudioProcessorEditor::~nnAudioProcessorEditor()
 {
+    DBG("==CLOSE==");
 }
 
 //==============================================================================
@@ -50,20 +51,22 @@ void nnAudioProcessorEditor::paint (juce::Graphics& g)
 void nnAudioProcessorEditor::init_environment()
 {
     // external.py is located at ~/NN_Func/Source
-    std::filesystem::path currentPath = std::filesystem::current_path();
-    std::filesystem::path grandpaPath = currentPath.parent_path().parent_path();
-    std::filesystem::path modulePath = grandpaPath / "Source";
+    //std::filesystem::path currentPath = std::filesystem::current_path();
+    //std::filesystem::path grandpaPath = currentPath.parent_path().parent_path();
+    //std::filesystem::path modulePath = grandpaPath / "Source";
 
     // edit environment path
-    auto sys = pybind11::module_::import("sys");
-    sys.attr("path").attr("insert")(0, modulePath.lexically_normal().string());
 
-    // import module
-    external_module = pybind11::module::import("external");
 }
 
 void nnAudioProcessorEditor::on_decode_room_impulse_response(std::string fp, float ch1, float ch2, float ch3, float ch4)
 {    
+    auto sys = pybind11::module_::import("sys");
+    sys.attr("path").attr("insert")(0, "D:\\Project\\NN_Func\\Source");
+
+    // import module
+    auto external_module = pybind11::module_::import("external");
+
     // execute python function
     pybind11::list pyList = external_module.attr("RIR2FDN")(fp, ch1, ch2, ch3, ch4).cast<pybind11::list>();
     auto data = convert_pylist_to_vector_3d(pyList);
