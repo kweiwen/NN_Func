@@ -43,6 +43,9 @@ private:
     void openFileChooser();
     void loadData();
 
+    pybind11::scoped_interpreter guard;
+    pybind11::object external_module;
+
     int int_decode_data;
     float ext_decode_data;
     CoefficientTableComponent table;

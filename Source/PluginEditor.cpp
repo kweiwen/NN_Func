@@ -23,6 +23,9 @@ PYBIND11_EMBEDDED_MODULE(local_calc, m) {
 nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
+    init_environment();
+
+
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     addAndMakeVisible(table);
@@ -54,13 +57,13 @@ void nnAudioProcessorEditor::init_environment()
     // edit environment path
     auto sys = pybind11::module_::import("sys");
     sys.attr("path").attr("insert")(0, modulePath.lexically_normal().string());
+
+    // import module
+    external_module = pybind11::module::import("external");
 }
 
 void nnAudioProcessorEditor::on_decode_room_impulse_response(std::string fp, float ch1, float ch2, float ch3, float ch4)
 {    
-    // import module
-    auto external_module = pybind11::module::import("external");
-
     // execute python function
     pybind11::list pyList = external_module.attr("RIR2FDN")(fp, ch1, ch2, ch3, ch4).cast<pybind11::list>();
     auto data = convert_pylist_to_vector_3d(pyList);
@@ -136,8 +139,6 @@ void nnAudioProcessorEditor::openFileChooser()
 
 void nnAudioProcessorEditor::loadData()
 {
-    pybind11::scoped_interpreter guard{};
-    init_environment();
     on_decode_room_impulse_response("C:\\Python37\\Lib\\DecayFitNet\\data\\exampleRIRs\\singleslope_00006_sh_rirs.wav", 1021, 2029, 3001, 4093);
     disp_coefficient();
 }
