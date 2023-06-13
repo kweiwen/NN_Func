@@ -97,40 +97,51 @@ void nnAudioProcessor::changeProgramName (int index, const juce::String& newName
 //==============================================================================
 void nnAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-	// FDN Init
+	// init feedback delay network
 	CB_1.reset(new CircularBuffer<double>);
 	CB_2.reset(new CircularBuffer<double>);
 	CB_3.reset(new CircularBuffer<double>);
 	CB_4.reset(new CircularBuffer<double>);
+	
 	FdnOutput_L.reset(new CircularBuffer<double>);
 	FdnOutput_R.reset(new CircularBuffer<double>);
+	
 	CB_1->createCircularBuffer(4096);
 	CB_1->flushBuffer();
+	
 	CB_2->createCircularBuffer(4096);
 	CB_2->flushBuffer();
+	
 	CB_3->createCircularBuffer(4096);
 	CB_3->flushBuffer();
+	
 	CB_4->createCircularBuffer(4096);
 	CB_4->flushBuffer();
+	
 	FdnOutput_L->createCircularBuffer(1024);
 	FdnOutput_L->flushBuffer();
 	FdnOutput_R->createCircularBuffer(1024);
 	FdnOutput_R->flushBuffer();
+	
 	feedbackLoop_1 = 0.0f;
 	feedbackLoop_2 = 0.0f;
 	feedbackLoop_3 = 0.0f;
 	feedbackLoop_4 = 0.0f;
 
-	// Convolution
+	DelayLine1 = 2003;
+	DelayLine2 = 2011;
+	DelayLine3 = 4049;
+	DelayLine4 = 4051;
+
+	auto coefficients = juce::IIRCoefficients::makeLowPass(sampleRate, 1200);
+	filter.setCoefficients(coefficients);
+
+	// init convolution
 	spec.sampleRate = sampleRate;
 	spec.maximumBlockSize = samplesPerBlock;
 	spec.numChannels = getTotalNumOutputChannels();
-
 	irloader.reset();
 	irloader.prepare(spec);
-
-	
-
 }
 
 void nnAudioProcessor::releaseResources()
@@ -201,11 +212,11 @@ void nnAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
 
 		CB_1->writeBuffer(X_L + output_1);
 		CB_2->writeBuffer(X_R + output_2);
-		CB_3->writeBuffer(X_L + output_3);
-		CB_4->writeBuffer(X_R + output_4);
+		CB_3->writeBuffer(output_3);
+		CB_4->writeBuffer(output_4);
 
-		FdnOutput_L->writeBuffer((vol * MyFilter_Process(&InitialLevelFilter, A + C + B + D, 0) * mix + input_L[i] * (1 - mix)));
-		FdnOutput_R->writeBuffer((vol * MyFilter_Process(&InitialLevelFilter, A + C + B + D, 1) * mix + input_R[i] * (1 - mix)));
+		FdnOutput_L->writeBuffer((vol * MyFilter_Process(&InitialLevelFilter, A + D, 0)));
+		FdnOutput_R->writeBuffer((vol * MyFilter_Process(&InitialLevelFilter, B + C, 1)));
 	}
 	irloader.process(juce::dsp::ProcessContextReplacing<float>(block));
 
@@ -214,8 +225,8 @@ void nnAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
 	auto* samples_R = block.getChannelPointer(1);
 	for (int i = 0; i < block.getNumSamples(); i++)
 	{
-		samples_L[i] = (1 - ratio)*samples_L[i] + ratio * FdnOutput_L->readBuffer(blockSize - i, false);;
-		samples_R[i] = (1 - ratio)*samples_R[i] + ratio * FdnOutput_R->readBuffer(blockSize - i, false);;
+		samples_L[i] = input_L[i] * (1 - mix) + (1 - ratio)*samples_L[i] + ratio * FdnOutput_L->readBuffer(blockSize - i, false);
+		samples_R[i] = input_R[i] * (1 - mix) + (1 - ratio)*samples_R[i] + ratio * FdnOutput_R->readBuffer(blockSize - i, false);
 	}	
 }
 

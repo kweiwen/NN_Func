@@ -105,10 +105,12 @@ public:
 	GEQ_Filter AbsorptionFilter;
 	GEQ_Filter InitialLevelFilter;
 
-	float DelayLine1 = 2000;
-	float DelayLine2 = 1433;
-	float DelayLine3 = 556;
-	float DelayLine4 = 2500;
+	juce::IIRFilter filter;
+
+	float DelayLine1;
+	float DelayLine2;
+	float DelayLine3;
+	float DelayLine4;
 
 	void MyFilter_Init(GEQ_Filter *pFilter);
 	double MyFilter_Process(GEQ_Filter *pFilter, double pSampleIn, int DelayIndex);

@@ -252,9 +252,9 @@ def RIR2FDN(f, ch1, ch2, ch3, ch4):
     file = wavio.read(fp)
     data = file.data[:, 0] / (2 ** (file.sampwidth * 8 - 1) - 1)
     fs = file.rate
-    data_norm = data / np.linalg.norm(data)
+    # data_norm = data / np.linalg.norm(data)
     delayLines = np.array([ch1, ch2, ch3, ch4])
-    output_data = RIR2AbsCoefLvlCoef(data_norm, delayLines, fs)
+    output_data = RIR2AbsCoefLvlCoef(data, delayLines, fs)
 
     return output_data.tolist()
 
