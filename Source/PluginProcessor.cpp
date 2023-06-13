@@ -22,6 +22,10 @@ nnAudioProcessor::nnAudioProcessor()
                        )
 #endif
 {
+
+	addParameter(Mix = new juce::AudioParameterFloat("0x01", "DirMix", 0.00f, 1.00f, 1.00f));
+	addParameter(Volume = new juce::AudioParameterFloat("0x02", "FdnVolume", 1.00f, 30.00f, 3.10f));
+	addParameter(Ratio = new juce::AudioParameterFloat("0x03", "Conv|Fdn", 0.00f, 1.00f, 1.00f));
 }
 
 nnAudioProcessor::~nnAudioProcessor()
@@ -93,8 +97,40 @@ void nnAudioProcessor::changeProgramName (int index, const juce::String& newName
 //==============================================================================
 void nnAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+	// FDN Init
+	CB_1.reset(new CircularBuffer<double>);
+	CB_2.reset(new CircularBuffer<double>);
+	CB_3.reset(new CircularBuffer<double>);
+	CB_4.reset(new CircularBuffer<double>);
+	FdnOutput_L.reset(new CircularBuffer<double>);
+	FdnOutput_R.reset(new CircularBuffer<double>);
+	CB_1->createCircularBuffer(4096);
+	CB_1->flushBuffer();
+	CB_2->createCircularBuffer(4096);
+	CB_2->flushBuffer();
+	CB_3->createCircularBuffer(4096);
+	CB_3->flushBuffer();
+	CB_4->createCircularBuffer(4096);
+	CB_4->flushBuffer();
+	FdnOutput_L->createCircularBuffer(1024);
+	FdnOutput_L->flushBuffer();
+	FdnOutput_R->createCircularBuffer(1024);
+	FdnOutput_R->flushBuffer();
+	feedbackLoop_1 = 0.0f;
+	feedbackLoop_2 = 0.0f;
+	feedbackLoop_3 = 0.0f;
+	feedbackLoop_4 = 0.0f;
+
+	// Convolution
+	spec.sampleRate = sampleRate;
+	spec.maximumBlockSize = samplesPerBlock;
+	spec.numChannels = getTotalNumOutputChannels();
+
+	irloader.reset();
+	irloader.prepare(spec);
+
+	
+
 }
 
 void nnAudioProcessor::releaseResources()
@@ -131,31 +167,56 @@ bool nnAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 
 void nnAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+	juce::ScopedNoDenormals noDenormals;
+	juce::dsp::AudioBlock<float> block{ buffer };
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
+	auto blockSize = buffer.getNumSamples();
+	auto* input_L = buffer.getReadPointer(0);
+	auto* input_R = buffer.getReadPointer(1);
 
-        // ..do something to the data...
-    }
+	auto mix = Mix->get();
+	auto vol = Volume->get();
+	auto ratio = Ratio->get();
+	// FDN Process
+	for (int i = 0; i < blockSize; i++)
+	{
+		auto X_L = input_L[i];
+		auto X_R = input_R[i];
+
+		feedbackLoop_1 = CB_1->readBuffer(DelayLine1, false);
+		feedbackLoop_2 = CB_2->readBuffer(DelayLine2, false);
+		feedbackLoop_3 = CB_3->readBuffer(DelayLine3, false);
+		feedbackLoop_4 = CB_4->readBuffer(DelayLine4, false);
+
+		auto A = MyFilter_Process(&AbsorptionFilter, feedbackLoop_1, 0);
+		auto B = MyFilter_Process(&AbsorptionFilter, feedbackLoop_2, 1);
+		auto C = MyFilter_Process(&AbsorptionFilter, feedbackLoop_3, 2);
+		auto D = MyFilter_Process(&AbsorptionFilter, feedbackLoop_4, 3);
+
+		auto output_1 = 0.5f * (A + B + C + D);
+		auto output_2 = 0.5f * (A - B + C - D);
+		auto output_3 = 0.5f * (A + B - C - D);
+		auto output_4 = 0.5f * (A - B - C + D);
+
+		CB_1->writeBuffer(X_L + output_1);
+		CB_2->writeBuffer(X_R + output_2);
+		CB_3->writeBuffer(X_L + output_3);
+		CB_4->writeBuffer(X_R + output_4);
+
+		FdnOutput_L->writeBuffer((vol * MyFilter_Process(&InitialLevelFilter, A + C + B + D, 0) * mix + input_L[i] * (1 - mix)));
+		FdnOutput_R->writeBuffer((vol * MyFilter_Process(&InitialLevelFilter, A + C + B + D, 1) * mix + input_R[i] * (1 - mix)));
+	}
+	irloader.process(juce::dsp::ProcessContextReplacing<float>(block));
+
+	// Convolution
+	auto* samples_L = block.getChannelPointer(0);
+	auto* samples_R = block.getChannelPointer(1);
+	for (int i = 0; i < block.getNumSamples(); i++)
+	{
+		samples_L[i] = (1 - ratio)*samples_L[i] + ratio * FdnOutput_L->readBuffer(blockSize - i, false);;
+		samples_R[i] = (1 - ratio)*samples_R[i] + ratio * FdnOutput_R->readBuffer(blockSize - i, false);;
+	}	
 }
 
 //==============================================================================
@@ -182,7 +243,66 @@ void nnAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
 }
+void nnAudioProcessor::MyFilter_Init(GEQ_Filter *pFilter)
+{
+	int i, j;
+	memset(pFilter, 0, sizeof(GEQ_Filter));
 
+	for (i = 0; i < NumberDelays; i++)
+	{
+		for (j = 0; j < NumberBands; j++)
+		{
+			pFilter->filterCoeff[i][j].b0 = 1.0f;
+		}
+	}
+}
+
+double nnAudioProcessor::MyFilter_Process(GEQ_Filter *pFilter, double pSampleIn, int DelayIndex)
+{
+	double  b0, b1, b2, a1, a2;
+	double accum;
+	double xn, xn1, xn2, yn1, yn2;
+	int j;
+
+	xn = pSampleIn;
+
+	for (j = 0; j < NumberBands; j++)
+	{
+		b0 = pFilter->filterCoeff[DelayIndex][j].b0;
+		b1 = pFilter->filterCoeff[DelayIndex][j].b1;
+		b2 = pFilter->filterCoeff[DelayIndex][j].b2;
+		a1 = pFilter->filterCoeff[DelayIndex][j].a1;
+		a2 = pFilter->filterCoeff[DelayIndex][j].a2;
+
+
+		xn1 = pFilter->filterStatus[DelayIndex][j].xn1;
+		xn2 = pFilter->filterStatus[DelayIndex][j].xn2;
+		yn1 = pFilter->filterStatus[DelayIndex][j].yn1;
+		yn2 = pFilter->filterStatus[DelayIndex][j].yn2;
+
+
+		accum = xn * b0;
+		accum += xn1 * b1;
+		accum += xn2 * b2;
+		accum -= yn1 * a1;
+		accum -= yn2 * a2;
+
+
+		xn2 = xn1;
+		xn1 = xn;
+		yn2 = yn1;
+		yn1 = accum;
+
+		pFilter->filterStatus[DelayIndex][j].xn1 = xn1;
+		pFilter->filterStatus[DelayIndex][j].xn2 = xn2;
+		pFilter->filterStatus[DelayIndex][j].yn1 = yn1;
+		pFilter->filterStatus[DelayIndex][j].yn2 = yn2;
+
+		xn = accum;
+
+	}
+	return accum;
+}
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

@@ -25,12 +25,12 @@ public:
         table.setOutlineThickness (0);
         table.getHeader().addColumn("channel",  1, 80,  50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
         table.getHeader().addColumn("band",     2, 80,  50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("a0",       3, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("a1",       4, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("a2",       5, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("b0",       6, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("b1",       7, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
-        table.getHeader().addColumn("b2",       8, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("b0",       3, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("b1",       4, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("b2",       5, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("a0",       6, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("a1",       7, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
+        table.getHeader().addColumn("a2",       8, 100, 50, 400, juce::TableHeaderComponent::notSortable && juce::TableHeaderComponent::draggable);
 
         resized();
     }

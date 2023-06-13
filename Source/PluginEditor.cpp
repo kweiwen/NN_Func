@@ -24,14 +24,12 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     //init_environment();
-
-
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
+	
     addAndMakeVisible(table);
     addAndMakeVisible(btn_load_file);
     addAndMakeVisible(btn_convert_parameters);
 
+	btn_convert_parameters.onClick = [this] {Convert_ButtonClick(); };
     btn_load_file.onClick = [this] { openFileChooser(); };
     setSize(800, 600);
 
@@ -87,6 +85,7 @@ void nnAudioProcessorEditor::on_decode_room_impulse_response(std::string fp, flo
     {
         table.update_entry(5, band+1, transition_coefs[band]);
     }
+
 }
 
 void nnAudioProcessorEditor::disp_coefficient()
@@ -109,6 +108,8 @@ void nnAudioProcessorEditor::disp_coefficient()
             DBG("Element at index (" << ", " << j << ", " << k << ") = " << transition_coefs[j][k]);
         }
     }
+
+	
 }
 
 std::vector<std::vector<std::vector<float>>> nnAudioProcessorEditor::convert_pylist_to_vector_3d(pybind11::list pylist)
@@ -132,18 +133,64 @@ std::vector<std::vector<std::vector<float>>> nnAudioProcessorEditor::convert_pyl
 
 void nnAudioProcessorEditor::openFileChooser()
 {
-    const auto callback = [this](const juce::FileChooser& chooser)
-    {
-        //DBG("" << chooser.getResult().getFullPathName());
-        loadData();
+	const auto callback = [this](const juce::FileChooser& chooser)
+	{
+		if (chooser.getResult().getFileExtension() == ".wav" | chooser.getResult().getFileExtension() == ".mp3")
+		{
+			table.clean_entry();
+			on_decode_room_impulse_response(chooser.getResult().getFullPathName().toStdString(), audioProcessor.DelayLine1, audioProcessor.DelayLine2, audioProcessor.DelayLine3, audioProcessor.DelayLine4);
+			disp_coefficient();
+			result = chooser.getResult();
+		}	
     };
     fileChooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, callback);
+
+	auto ColourId1 = juce::Colours::darkseagreen;
+	btn_convert_parameters.setColour(0x1000100, ColourId1);
 }
 
-void nnAudioProcessorEditor::loadData()
+void nnAudioProcessorEditor::Convert_ButtonClick()
 {
-    on_decode_room_impulse_response("C:\\Python37\\Lib\\DecayFitNet\\data\\exampleRIRs\\singleslope_00006_sh_rirs.wav", 1021, 2029, 3001, 4093);
-    disp_coefficient();
+	auto ColourId1 = juce::Colours::yellowgreen;
+	btn_convert_parameters.setColour(0x1000100, ColourId1);
+
+	audioProcessor.irloader.reset();
+	audioProcessor.irloader.loadImpulseResponse(result, juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no, 0);
+
+	audioProcessor.MyFilter_Init(&audioProcessor.AbsorptionFilter);
+	audioProcessor.MyFilter_Init(&audioProcessor.InitialLevelFilter);
+
+	for (size_t i = 0; i < absorption_coefs.size(); ++i)
+	{
+		for (size_t j = 0; j < absorption_coefs[i].size(); ++j)
+		{
+			audioProcessor.AbsorptionFilter.filterCoeff[i][j].b0 = absorption_coefs[i][j][0] / absorption_coefs[i][j][3];
+			audioProcessor.AbsorptionFilter.filterCoeff[i][j].b1 = absorption_coefs[i][j][1] / absorption_coefs[i][j][3];
+			audioProcessor.AbsorptionFilter.filterCoeff[i][j].b2 = absorption_coefs[i][j][2] / absorption_coefs[i][j][3];
+			audioProcessor.AbsorptionFilter.filterCoeff[i][j].a1 = absorption_coefs[i][j][4] / absorption_coefs[i][j][3];
+			audioProcessor.AbsorptionFilter.filterCoeff[i][j].a2 = absorption_coefs[i][j][5] / absorption_coefs[i][j][3];
+
+		}
+	}
+
+	for (size_t j = 0; j < transition_coefs.size(); ++j)
+	{
+		audioProcessor.InitialLevelFilter.filterCoeff[0][j].b0 = transition_coefs[j][0] / transition_coefs[j][3];
+		audioProcessor.InitialLevelFilter.filterCoeff[0][j].b1 = transition_coefs[j][1] / transition_coefs[j][3];
+		audioProcessor.InitialLevelFilter.filterCoeff[0][j].b2 = transition_coefs[j][2] / transition_coefs[j][3];
+		audioProcessor.InitialLevelFilter.filterCoeff[0][j].a1 = transition_coefs[j][4] / transition_coefs[j][3];
+		audioProcessor.InitialLevelFilter.filterCoeff[0][j].a2 = transition_coefs[j][5] / transition_coefs[j][3];
+
+		audioProcessor.InitialLevelFilter.filterCoeff[1][j].b0 = transition_coefs[j][0] / transition_coefs[j][3];
+		audioProcessor.InitialLevelFilter.filterCoeff[1][j].b1 = transition_coefs[j][1] / transition_coefs[j][3];
+		audioProcessor.InitialLevelFilter.filterCoeff[1][j].b2 = transition_coefs[j][2] / transition_coefs[j][3];
+		audioProcessor.InitialLevelFilter.filterCoeff[1][j].a1 = transition_coefs[j][4] / transition_coefs[j][3];
+		audioProcessor.InitialLevelFilter.filterCoeff[1][j].a2 = transition_coefs[j][5] / transition_coefs[j][3];
+
+		//DBG(".AbsorptionFilter.filterCoeff" <<  j << ",  " << audioProcessor.InitialLevelFilter.filterCoeff[1][j].a2);
+	}
+
+	
 }
 
 

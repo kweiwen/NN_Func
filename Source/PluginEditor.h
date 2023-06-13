@@ -38,15 +38,16 @@ private:
     std::vector<std::vector<std::vector<float>>> absorption_coefs;
     std::vector<std::vector<float>> transition_coefs;
     void openFileChooser();
-    void loadData();
+    void Convert_ButtonClick();
 
     //pybind11::object external_module;
-
+	
     int int_decode_data;
     float ext_decode_data;
     CoefficientTableComponent table;
     juce::TextButton btn_load_file{ "Load File" };
     juce::TextButton btn_convert_parameters{ "Convert Parameters" };
+	juce::File result;
     juce::FileChooser fileChooser{ "Browse for Room Imoulse Response Data", juce::File::getSpecialLocation(juce::File::invokedExecutableFile) };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (nnAudioProcessorEditor)
 };

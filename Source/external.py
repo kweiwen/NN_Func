@@ -5,12 +5,16 @@ from scipy.signal import butter, sosfilt, zpk2sos, freqz
 from scipy.optimize import lsq_linear
 from DecayFitNet.python.toolbox.DecayFitNetToolbox import DecayFitNetToolbox
 import matplotlib.pyplot as plt
+import os
+
 
 def mag2db(input_data):
-    return 20*np.log10(input_data)
+    return 20 * np.log10(input_data)
+
 
 def db2mag(input_data):
-    return 10**(input_data/20.0)
+    return 10 ** (input_data / 20.0)
+
 
 def RT602slope(RT60, fs):
     if np.any(RT60 == 0):
@@ -18,6 +22,7 @@ def RT602slope(RT60, fs):
 
     slope = -60.0 / (RT60 * fs)
     return slope
+
 
 def octaveFiltering(inputSignal, fs, fBands):
     numBands = len(fBands)
@@ -27,15 +32,15 @@ def octaveFiltering(inputSignal, fs, fBands):
         # Determine IIR filter coefficients for this band
         if fBands[bIdx] == 0:
             # Lowpass band below lowest octave band
-            fCutoff = (1/np.sqrt(2))*fBands[bIdx+1]
-            z, p, k = butter(5, fCutoff/fs*2, btype='low', output='zpk')
-        elif fBands[bIdx] == fs/2:
+            fCutoff = (1 / np.sqrt(2)) * fBands[bIdx + 1]
+            z, p, k = butter(5, fCutoff / fs * 2, btype='low', output='zpk')
+        elif fBands[bIdx] == fs / 2:
             # Highpass band above highest octave band
-            fCutoff = np.sqrt(2)*fBands[bIdx-1]
-            z, p, k = butter(5, fCutoff/fs*2, btype='high', output='zpk')
+            fCutoff = np.sqrt(2) * fBands[bIdx - 1]
+            z, p, k = butter(5, fCutoff / fs * 2, btype='high', output='zpk')
         else:
-            thisBand = fBands[bIdx] * np.array([1/np.sqrt(2), np.sqrt(2)])
-            z, p, k = butter(5, thisBand/fs*2, btype='bandpass', output='zpk')
+            thisBand = fBands[bIdx] * np.array([1 / np.sqrt(2), np.sqrt(2)])
+            z, p, k = butter(5, thisBand / fs * 2, btype='bandpass', output='zpk')
 
         # print('bIdx: ', bIdx)
         # print('z   : ', z)
@@ -46,6 +51,7 @@ def octaveFiltering(inputSignal, fs, fBands):
         outBands[:, bIdx] = sosfilt(sos, inputSignal)
 
     return outBands
+
 
 def decayFitNet2InitialLevel(T, A, N, normalization, fs, rirLen, fBands):
     normalization = np.array(normalization)
@@ -60,9 +66,10 @@ def decayFitNet2InitialLevel(T, A, N, normalization, fs, rirLen, fBands):
     gainPerSample = db2mag(RT602slope(T, fs))
     decayEnergy = 1 / (1 - gainPerSample ** 2)
 
-    level = np.sqrt( A_norm / bandEnergy / decayEnergy * rirLen)
+    level = np.sqrt(A_norm / bandEnergy / decayEnergy * rirLen)
 
     return level, A_norm, N_norm
+
 
 def graphicEQ(centerOmega, shelvingOmega, R, gaindB):
     numFreq = len(centerOmega) + len(shelvingOmega) + 1
@@ -85,6 +92,7 @@ def graphicEQ(centerOmega, shelvingOmega, R, gaindB):
 
         SOS[band, :] = sos
     return SOS
+
 
 def shelvingFilter(omegaC, gain, type):
     b = np.zeros(3)
@@ -114,6 +122,7 @@ def shelvingFilter(omegaC, gain, type):
 
     return b, a
 
+
 def bandpassFilter(omegaC, gain, Q):
     b = np.zeros(3)
     a = np.zeros(3)
@@ -130,6 +139,7 @@ def bandpassFilter(omegaC, gain, Q):
     a[2] = np.sqrt(gain) - t
 
     return b, a
+
 
 def probeSOS(SOS, controlFrequencies, fftLen, fs):
     numFreq = SOS.shape[0]
@@ -151,12 +161,14 @@ def probeSOS(SOS, controlFrequencies, fftLen, fs):
 
     return G, H, W
 
+
 def hertz2rad(freq, fs):
     return 2 * np.pi * np.array(freq) / fs
 
+
 def designGEQ(targetG: np.array):
     fs = 48000
-    fftLen = 2**16
+    fftLen = 2 ** 16
 
     centerFrequencies = [63, 125, 250, 500, 1000, 2000, 4000, 8000]  # Hz
     ShelvingCrossover = [46, 11360]  # Hz
@@ -167,7 +179,7 @@ def designGEQ(targetG: np.array):
 
     # control frequencies are spaced logarithmically
     numControl = 100
-    controlFrequencies = np.round(np.logspace(np.log10(1), np.log10(fs/2.1), numControl+1))
+    controlFrequencies = np.round(np.logspace(np.log10(1), np.log10(fs / 2.1), numControl + 1))
 
     # target magnitude response via command gains
     targetF = [1] + centerFrequencies + [fs]
@@ -175,7 +187,7 @@ def designGEQ(targetG: np.array):
 
     # design prototype of the biquad sections
     prototypeGain = 10  # dB
-    prototypeGainArray = prototypeGain * np.ones(numFreq+1)
+    prototypeGainArray = prototypeGain * np.ones(numFreq + 1)
     prototypeSOS = graphicEQ(centerOmega, shelvingOmega, R, prototypeGainArray)
     G, prototypeH, prototypeW = probeSOS(prototypeSOS, controlFrequencies, fftLen, fs)
     G = G / prototypeGain  # dB vs control frequencies
@@ -215,7 +227,7 @@ def RIR2AbsCoefLvlCoef(data, delayLines, fs):
     # Convert T60 to magnitude response
     targetG = RT602slope(targetT60, fs)
 
-    output_data = np.zeros([len(delayLines)+1, len(filter_frequencies)+3, 6])
+    output_data = np.zeros([len(delayLines) + 1, len(filter_frequencies) + 3, 6])
 
     for index, delayLine in enumerate(delayLines):
         sos, _ = designGEQ(delayLine * targetG)
@@ -223,28 +235,39 @@ def RIR2AbsCoefLvlCoef(data, delayLines, fs):
 
     estLevel = np.hstack((estL[0, 0], estL[0], estL[0, -1]))
     targetLevel = mag2db(estLevel)
-    targetLevel = targetLevel - np.array([5, 0, 0, 0, 0, 0, 0, 0, 5, 30])
+    targetLevel = targetLevel - np.array([15, 10, 0, 0, 0, 0, 0, 0, 5, 30])
     sos, _ = designGEQ(targetLevel)
     output_data[-1] = sos
 
     return output_data
 
-def RIR2FDN(fp, ch1, ch2, ch3, ch4):
+
+def compute_engery_scale(input_data):
+    w, h = freqz(input_data, worN=128)
+    return 1 / np.max(np.abs(h))
+
+
+def RIR2FDN(f, ch1, ch2, ch3, ch4):
+    fp = f
     file = wavio.read(fp)
     data = file.data[:, 0] / (2 ** (file.sampwidth * 8 - 1) - 1)
+    fs = file.rate
+    data_norm = data / np.linalg.norm(data)
     delayLines = np.array([ch1, ch2, ch3, ch4])
-    output_data = RIR2AbsCoefLvlCoef(data, delayLines, file.rate)
+    output_data = RIR2AbsCoefLvlCoef(data_norm, delayLines, fs)
 
     return output_data.tolist()
 
+
 def demo_RIR2FDN():
-    fp = "C:\Python37\Lib\DecayFitNet\data\exampleRIRs\singleslope_0001_1_sh_rirs.wav"
+    fp = "D:\lixin25\Desktop\singleslope_00006_sh_rirs.wav"
     output_data = RIR2FDN(fp, 1021, 2029, 3001, 4093)
     return np.array(output_data)
 
+
 def demo_decayFitNet2InitialLevel():
     fs = 48000
-    fBands = [0, 500, 1000, 2000, 4000, 8000, 16000, fs/2]
+    fBands = [0, 500, 1000, 2000, 4000, 8000, 16000, fs / 2]
     rirLen = fs
 
     normalization = np.random.ranf(8)
@@ -255,12 +278,13 @@ def demo_decayFitNet2InitialLevel():
 
     print(level, A_norm, N_norm)
 
+
 if __name__ == "__main__":
     coefficients = demo_RIR2FDN()
     for index, coefficient in enumerate(coefficients[4]):
         b = coefficient[:3]
         a = coefficient[3:]
-        w, h = freqz(b, a, worN=2**16, fs=48000)
+        w, h = freqz(b, a, worN=2 ** 16, fs=48000)
         amplitude = mag2db(np.abs(h))
         plt.plot(amplitude, label="band" + str(index))
 
