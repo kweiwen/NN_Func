@@ -222,7 +222,7 @@ def RIR2AbsCoefLvlCoef(data, delayLines, fs):
     estL, estA, estN = decayFitNet2InitialLevel(estT, estA, estN, norm_vals_net, fs, data.shape[0], filter_frequencies)
 
     targetT60 = np.hstack((estT[0, 0], estT[0], estT[0, -1]))
-    targetT60 = np.multiply(targetT60, np.array([0.9, 1, 1, 1, 1, 1, 1, 1, 0.9, 0.5]))
+    targetT60 = np.multiply(targetT60, np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
 
     # Convert T60 to magnitude response
     targetG = RT602slope(targetT60, fs)
@@ -235,7 +235,7 @@ def RIR2AbsCoefLvlCoef(data, delayLines, fs):
 
     estLevel = np.hstack((estL[0, 0], estL[0], estL[0, -1]))
     targetLevel = mag2db(estLevel)
-    targetLevel = targetLevel - np.array([5, 0, 0, 0, 0, 0, 0, 0, 5, 30])
+    targetLevel = targetLevel - np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     sos, _ = designGEQ(targetLevel)
     output_data[-1] = sos
 
