@@ -150,8 +150,8 @@ void nnAudioProcessorEditor::Convert_ButtonClick()
 	auto ColourId1 = juce::Colours::yellowgreen;
 	btn_convert_parameters.setColour(0x1000100, ColourId1);
 
-	audioProcessor.irloader.reset();
-	audioProcessor.irloader.loadImpulseResponse(result, juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no, 0);
+	audioProcessor.convolution.reset();
+	audioProcessor.convolution.loadImpulseResponse(result, juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no, 0);
 
 	for (size_t i = 0; i < absorption_coefs.size(); ++i)
 	{

@@ -93,7 +93,7 @@ public:
 	juce::AudioParameterFloat* level1;
 	juce::AudioParameterFloat* level2;
 	juce::AudioParameterFloat* level3;
-	juce::dsp::Convolution irloader;
+	juce::dsp::Convolution convolution;
 	juce::dsp::ProcessSpec spec;
 private:
     float nnAudioProcessor::processSignalThroughFilters(float xn, std::vector<juce::IIRFilter>& filters);

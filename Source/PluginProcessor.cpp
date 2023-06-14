@@ -143,8 +143,8 @@ void nnAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 	spec.sampleRate = sampleRate;
 	spec.maximumBlockSize = samplesPerBlock;
 	spec.numChannels = getTotalNumOutputChannels();
-	irloader.reset();
-	irloader.prepare(spec);
+	convolution.reset();
+	convolution.prepare(spec);
 }
 
 void nnAudioProcessor::releaseResources()
@@ -226,15 +226,15 @@ void nnAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
 
 	// convolution process
 	juce::dsp::AudioBlock<float> block{ buffer };
-	irloader.process(juce::dsp::ProcessContextReplacing<float>(block));
+	convolution.process(juce::dsp::ProcessContextReplacing<float>(block));
 	auto* convL = block.getChannelPointer(0);
 	auto* convR = block.getChannelPointer(1);
 
 	// output
 	for (int i = 0; i < block.getNumSamples(); i++)
 	{
-		outputL[i] = dryL[i] * level1->get() + convL[i] * level2->get() + bufferL[i] * 4.0f * level3->get();
-		outputR[i] = dryR[i] * level1->get() + convR[i] * level2->get() + bufferR[i] * 4.0f * level3->get();
+		outputL[i] = dryL[i] * level1->get() + convL[i] * level2->get() + bufferL[i] * 3.0f * level3->get();
+		outputR[i] = dryR[i] * level1->get() + convR[i] * level2->get() + bufferR[i] * 3.0f * level3->get();
 	}	
 }
 
