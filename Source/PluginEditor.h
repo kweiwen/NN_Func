@@ -40,6 +40,8 @@ private:
     void openFileChooser();
     void Convert_ButtonClick();
 
+    //pybind11::object external_module;
+	
     int int_decode_data;
     float ext_decode_data;
     CoefficientTableComponent table;

@@ -134,7 +134,7 @@ void nnAudioProcessorEditor::openFileChooser()
 		if (chooser.getResult().getFileExtension() == ".wav" | chooser.getResult().getFileExtension() == ".mp3")
 		{
 			table.clean_entry();
-			on_decode_room_impulse_response(chooser.getResult().getFullPathName().toStdString(), audioProcessor.DelayLine1, audioProcessor.DelayLine2, audioProcessor.DelayLine3, audioProcessor.DelayLine4);
+			on_decode_room_impulse_response(chooser.getResult().getFullPathName().toStdString(), audioProcessor.delayLine1, audioProcessor.delayLine2, audioProcessor.delayLine3, audioProcessor.delayLine4);
 			disp_coefficient();
 			result = chooser.getResult();
 		}	
