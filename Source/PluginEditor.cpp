@@ -24,15 +24,27 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     //init_environment();
-	
+    addAndMakeVisible(&lbl_rir_path);
+    addAndMakeVisible(&edt_rir_path);
+    addAndMakeVisible(btn_load_rir);
+    addAndMakeVisible(&lbl_py_path);
+    addAndMakeVisible(&edt_py_path);
+    addAndMakeVisible(btn_load_py);
     addAndMakeVisible(table);
-    addAndMakeVisible(btn_load_file);
     addAndMakeVisible(btn_convert_parameters);
 
-	btn_convert_parameters.onClick = [this] {Convert_ButtonClick(); };
-    btn_load_file.onClick = [this] { openFileChooser(); };
-    setSize(800, 600);
+    edt_py_path.setText("D:\\Project\\NN_Func\\Source");
 
+
+    lbl_rir_path.setText("RIR(Room Impulse Response) Path: ", juce::dontSendNotification);
+    lbl_py_path.setText("Neural Network Python Script Path: ", juce::dontSendNotification);
+    edt_rir_path.setReadOnly(true);
+    edt_py_path.setReadOnly(true);
+
+	btn_convert_parameters.onClick = [this] {sync_impulse_response_n_coefficients(); };
+    btn_load_rir.onClick = [this] { open_rir_chooser(); };
+    btn_load_py.onClick = [this] { open_py_chooser(); };
+    setSize(800, 600);
 }
 
 nnAudioProcessorEditor::~nnAudioProcessorEditor()
@@ -83,7 +95,6 @@ void nnAudioProcessorEditor::on_decode_room_impulse_response(std::string fp, flo
     {
         table.update_entry(5, band+1, transition_coefs[band]);
     }
-
 }
 
 void nnAudioProcessorEditor::disp_coefficient()
@@ -127,7 +138,7 @@ std::vector<std::vector<std::vector<float>>> nnAudioProcessorEditor::convert_pyl
     return output_data;
 }
 
-void nnAudioProcessorEditor::openFileChooser()
+void nnAudioProcessorEditor::open_rir_chooser()
 {
 	const auto callback = [this](const juce::FileChooser& chooser)
 	{
@@ -135,6 +146,7 @@ void nnAudioProcessorEditor::openFileChooser()
 		{
 			table.clean_entry();
 			on_decode_room_impulse_response(chooser.getResult().getFullPathName().toStdString(), audioProcessor.delayLine1, audioProcessor.delayLine2, audioProcessor.delayLine3, audioProcessor.delayLine4);
+            edt_rir_path.setText(chooser.getResult().getFullPathName());
 			disp_coefficient();
 			result = chooser.getResult();
 		}	
@@ -145,7 +157,18 @@ void nnAudioProcessorEditor::openFileChooser()
 	btn_convert_parameters.setColour(0x1000100, ColourId1);
 }
 
-void nnAudioProcessorEditor::Convert_ButtonClick()
+void nnAudioProcessorEditor::open_py_chooser()
+{
+    const auto callback = [this](const juce::FileChooser& chooser)
+    {
+        if (chooser.getResult().getFileExtension() == ".py")
+        {
+        }
+    };
+    fileChooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, callback);
+}
+
+void nnAudioProcessorEditor::sync_impulse_response_n_coefficients()
 {
 	auto ColourId1 = juce::Colours::yellowgreen;
 	btn_convert_parameters.setColour(0x1000100, ColourId1);
@@ -189,8 +212,22 @@ void nnAudioProcessorEditor::Convert_ButtonClick()
 void nnAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds();
-    auto buttonArea = getLocalBounds().removeFromTop(50).reduced(10);
-    btn_load_file.setBounds(buttonArea.removeFromLeft(buttonArea.getWidth() / 2).reduced(2));
+    auto topArea = area.removeFromTop(118);
+
+    auto buttonArea = topArea.removeFromTop(42).reduced(5);
+    //btn_load_file.setBounds(buttonArea.removeFromLeft(buttonArea.getWidth() / 2).reduced(2));
     btn_convert_parameters.setBounds(buttonArea.reduced(2));
-    table.setBounds(getLocalBounds().removeFromBottom(area.getHeight() - 50));
+
+    auto rirPathArea = topArea.removeFromTop(38).reduced(5);
+    lbl_rir_path.setBounds(rirPathArea.removeFromLeft(240));
+    edt_rir_path.setBounds(rirPathArea.removeFromLeft(rirPathArea.getWidth() - 30));
+    btn_load_rir.setBounds(rirPathArea);
+
+    auto pyPathArea = topArea.removeFromTop(38).reduced(5);
+    lbl_py_path.setBounds(pyPathArea.removeFromLeft(240));
+    edt_py_path.setBounds(pyPathArea.removeFromLeft(pyPathArea.getWidth() - 30));
+    btn_load_py.setBounds(pyPathArea);
+
+    table.setBounds(area);
 }
+
