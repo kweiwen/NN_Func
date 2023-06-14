@@ -72,6 +72,8 @@ public:
 
     std::vector<double> bufferL;
     std::vector<double> bufferR;
+    std::vector<double> dryL;
+    std::vector<double> dryR;
 
 	double feedbackLoop1;
 	double feedbackLoop2;

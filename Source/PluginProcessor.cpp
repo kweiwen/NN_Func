@@ -103,9 +103,6 @@ void nnAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 	CB3.reset(new CircularBuffer<double>);
 	CB4.reset(new CircularBuffer<double>);
 	
-	//FdnOutput_L.reset(new CircularBuffer<double>);
-	//FdnOutput_R.reset(new CircularBuffer<double>);
-	
 	CB1->createCircularBuffer(4096);
 	CB1->flushBuffer();
 	
@@ -118,13 +115,10 @@ void nnAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 	CB4->createCircularBuffer(4096);
 	CB4->flushBuffer();
 	
-	//FdnOutput_L->createCircularBuffer(1024);
-	//FdnOutput_L->flushBuffer();
-	//FdnOutput_R->createCircularBuffer(1024);
-	//FdnOutput_R->flushBuffer();
-
 	bufferL.resize(samplesPerBlock);
 	bufferR.resize(samplesPerBlock);
+	dryL.resize(samplesPerBlock);
+	dryR.resize(samplesPerBlock);
 	
 	feedbackLoop1 = 0.0f;
 	feedbackLoop2 = 0.0f;
@@ -188,18 +182,24 @@ bool nnAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 void nnAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
 	juce::ScopedNoDenormals noDenormals;
-	juce::dsp::AudioBlock<float> block{ buffer };
 
 	auto blockSize = buffer.getNumSamples();
-	auto* input_L = buffer.getReadPointer(0);
-	auto* input_R = buffer.getReadPointer(1);
+
+	auto* inputL  = buffer.getReadPointer(0);
+	auto* inputR  = buffer.getReadPointer(1);
+	auto* outputL = buffer.getWritePointer(0);
+	auto* outputR = buffer.getWritePointer(1);
+	
+	// store dry signal
+	for (int i = 0; i < blockSize; i++)
+	{
+		dryL[i] = inputL[i];
+		dryR[i] = inputR[i];
+	}
 
 	// feedback delay network Process
 	for (int i = 0; i < blockSize; i++)
 	{
-		auto xL = input_L[i];
-		auto xR = input_R[i];
-
 		feedbackLoop1 = CB1->readBuffer(delayLine1, false);
 		feedbackLoop2 = CB2->readBuffer(delayLine2, false);
 		feedbackLoop3 = CB3->readBuffer(delayLine3, false);
@@ -215,8 +215,8 @@ void nnAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
 		auto output_3 = 0.5f * (A + B - C - D);
 		auto output_4 = 0.5f * (A - B - C + D);
 
-		CB1->writeBuffer(xL + output_1);
-		CB2->writeBuffer(xR + output_2);
+		CB1->writeBuffer(dryL[i] + output_1);
+		CB2->writeBuffer(dryR[i] + output_2);
 		CB3->writeBuffer(output_3);
 		CB4->writeBuffer(output_4);
 
@@ -225,13 +225,16 @@ void nnAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
 	}
 
 	// convolution process
+	juce::dsp::AudioBlock<float> block{ buffer };
 	irloader.process(juce::dsp::ProcessContextReplacing<float>(block));
-	auto* samples_L = block.getChannelPointer(0);
-	auto* samples_R = block.getChannelPointer(1);
+	auto* convL = block.getChannelPointer(0);
+	auto* convR = block.getChannelPointer(1);
+
+	// output
 	for (int i = 0; i < block.getNumSamples(); i++)
 	{
-		samples_L[i] = input_L[i] * level1->get() + samples_L[i] * level2->get() + bufferL[i] * 3.0f * level3->get();
-		samples_R[i] = input_R[i] * level1->get() + samples_R[i] * level2->get() + bufferR[i] * 3.0f * level3->get();
+		outputL[i] = dryL[i] * level1->get() + convL[i] * level2->get() + bufferL[i] * 4.0f * level3->get();
+		outputR[i] = dryR[i] * level1->get() + convR[i] * level2->get() + bufferR[i] * 4.0f * level3->get();
 	}	
 }
 
