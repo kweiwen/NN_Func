@@ -133,8 +133,7 @@ void nnAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 	DelayLine3 = 4049;
 	DelayLine4 = 4051;
 
-	auto coefficients = juce::IIRCoefficients::makeLowPass(sampleRate, 1200);
-	filter.setCoefficients(coefficients);
+	initialFiltersL.resize(bandSize);
 
 	// init convolution
 	spec.sampleRate = sampleRate;
@@ -178,7 +177,6 @@ bool nnAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 
 void nnAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-
 	juce::ScopedNoDenormals noDenormals;
 	juce::dsp::AudioBlock<float> block{ buffer };
 
@@ -210,13 +208,13 @@ void nnAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
 		auto output_3 = 0.5f * (A + B - C - D);
 		auto output_4 = 0.5f * (A - B - C + D);
 
-		CB_1->writeBuffer(X_L + output_1);
-		CB_2->writeBuffer(X_R + output_2);
-		CB_3->writeBuffer(output_3);
-		CB_4->writeBuffer(output_4);
+		CB_1->writeBuffer(output_1);
+		CB_2->writeBuffer(output_2);
+		CB_3->writeBuffer(X_L + output_3);
+		CB_4->writeBuffer(X_R + output_4);
 
-		FdnOutput_L->writeBuffer((vol * MyFilter_Process(&InitialLevelFilter, A + D, 0)));
-		FdnOutput_R->writeBuffer((vol * MyFilter_Process(&InitialLevelFilter, B + C, 1)));
+		FdnOutput_L->writeBuffer(vol * processSignalThroughFilters(A + D, initialFiltersL));
+		FdnOutput_R->writeBuffer(vol * processSignalThroughFilters(B + C, initialFiltersL));
 	}
 	irloader.process(juce::dsp::ProcessContextReplacing<float>(block));
 
@@ -259,9 +257,9 @@ void nnAudioProcessor::MyFilter_Init(GEQ_Filter *pFilter)
 	int i, j;
 	memset(pFilter, 0, sizeof(GEQ_Filter));
 
-	for (i = 0; i < NumberDelays; i++)
+	for (i = 0; i < delaySize; i++)
 	{
-		for (j = 0; j < NumberBands; j++)
+		for (j = 0; j < bandSize; j++)
 		{
 			pFilter->filterCoeff[i][j].b0 = 1.0f;
 		}
@@ -277,7 +275,7 @@ double nnAudioProcessor::MyFilter_Process(GEQ_Filter *pFilter, double pSampleIn,
 
 	xn = pSampleIn;
 
-	for (j = 0; j < NumberBands; j++)
+	for (j = 0; j < bandSize; j++)
 	{
 		b0 = pFilter->filterCoeff[DelayIndex][j].b0;
 		b1 = pFilter->filterCoeff[DelayIndex][j].b1;
@@ -319,4 +317,13 @@ double nnAudioProcessor::MyFilter_Process(GEQ_Filter *pFilter, double pSampleIn,
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new nnAudioProcessor();
+}
+
+float nnAudioProcessor::processSignalThroughFilters(float xn, std::vector<juce::IIRFilter>& filters)
+{
+	for (auto& filter : filters) 
+	{
+		xn = filter.processSingleSampleRaw(xn);
+	}
+	return xn;
 }

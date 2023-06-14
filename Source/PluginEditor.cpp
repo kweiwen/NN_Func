@@ -37,7 +37,6 @@ nnAudioProcessorEditor::nnAudioProcessorEditor (nnAudioProcessor& p)
 
 nnAudioProcessorEditor::~nnAudioProcessorEditor()
 {
-    DBG("==CLOSE==");
 }
 
 //==============================================================================
@@ -54,7 +53,6 @@ void nnAudioProcessorEditor::init_environment()
     //std::filesystem::path modulePath = grandpaPath / "Source";
 
     // edit environment path
-
 }
 
 void nnAudioProcessorEditor::on_decode_room_impulse_response(std::string fp, float ch1, float ch2, float ch3, float ch4)
@@ -108,8 +106,6 @@ void nnAudioProcessorEditor::disp_coefficient()
             DBG("Element at index (" << ", " << j << ", " << k << ") = " << transition_coefs[j][k]);
         }
     }
-
-	
 }
 
 std::vector<std::vector<std::vector<float>>> nnAudioProcessorEditor::convert_pylist_to_vector_3d(pybind11::list pylist)
@@ -175,17 +171,17 @@ void nnAudioProcessorEditor::Convert_ButtonClick()
 
 	for (size_t j = 0; j < transition_coefs.size(); ++j)
 	{
-		audioProcessor.InitialLevelFilter.filterCoeff[0][j].b0 = transition_coefs[j][0] / transition_coefs[j][3];
-		audioProcessor.InitialLevelFilter.filterCoeff[0][j].b1 = transition_coefs[j][1] / transition_coefs[j][3];
-		audioProcessor.InitialLevelFilter.filterCoeff[0][j].b2 = transition_coefs[j][2] / transition_coefs[j][3];
-		audioProcessor.InitialLevelFilter.filterCoeff[0][j].a1 = transition_coefs[j][4] / transition_coefs[j][3];
-		audioProcessor.InitialLevelFilter.filterCoeff[0][j].a2 = transition_coefs[j][5] / transition_coefs[j][3];
+        auto b0 = transition_coefs[j][0];
+        auto b1 = transition_coefs[j][1];
+        auto b2 = transition_coefs[j][2];
+        
+        auto a0 = transition_coefs[j][3];
+        auto a1 = transition_coefs[j][4];
+        auto a2 = transition_coefs[j][5];
 
-		audioProcessor.InitialLevelFilter.filterCoeff[1][j].b0 = transition_coefs[j][0] / transition_coefs[j][3];
-		audioProcessor.InitialLevelFilter.filterCoeff[1][j].b1 = transition_coefs[j][1] / transition_coefs[j][3];
-		audioProcessor.InitialLevelFilter.filterCoeff[1][j].b2 = transition_coefs[j][2] / transition_coefs[j][3];
-		audioProcessor.InitialLevelFilter.filterCoeff[1][j].a1 = transition_coefs[j][4] / transition_coefs[j][3];
-		audioProcessor.InitialLevelFilter.filterCoeff[1][j].a2 = transition_coefs[j][5] / transition_coefs[j][3];
+        juce::IIRCoefficients coeffs(b0, b1, b2, a0, a1, a2);
+        audioProcessor.initialFiltersL[j].setCoefficients(coeffs);
+        audioProcessor.initialFiltersR[j].setCoefficients(coeffs);
 
 		//DBG(".AbsorptionFilter.filterCoeff" <<  j << ",  " << audioProcessor.InitialLevelFilter.filterCoeff[1][j].a2);
 	}

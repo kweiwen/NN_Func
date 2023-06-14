@@ -13,8 +13,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include "CircularBuffer.h"
-#define NumberDelays 4
-#define NumberBands 11
+#define delaySize 4
+#define bandSize 11
 #define M_PI    3.141592653589793238462643383279502884 
 
 //==============================================================================
@@ -97,15 +97,16 @@ public:
 
 	typedef struct GEQ_Filter
 	{
-		Filter_Coeff filterCoeff[NumberDelays][NumberBands];
-		Filter_XY  filterStatus[NumberDelays][NumberBands];
+		Filter_Coeff filterCoeff[delaySize][bandSize];
+		Filter_XY  filterStatus[delaySize][bandSize];
 
 	}GEQ_Filter;
 
 	GEQ_Filter AbsorptionFilter;
 	GEQ_Filter InitialLevelFilter;
 
-	juce::IIRFilter filter;
+	std::vector<juce::IIRFilter> initialFiltersL;
+	std::vector<juce::IIRFilter> initialFiltersR;
 
 	float DelayLine1;
 	float DelayLine2;
@@ -118,7 +119,7 @@ public:
 	juce::AudioParameterFloat* Mix;
 	juce::AudioParameterFloat* Volume;
 	juce::AudioParameterFloat* Ratio;
-
+	float nnAudioProcessor::processSignalThroughFilters(float xn, std::vector<juce::IIRFilter>& filters);
 	juce::dsp::Convolution irloader;
 	juce::dsp::ProcessSpec spec;
 private:
