@@ -235,7 +235,7 @@ def RIR2AbsCoefLvlCoef(data, delayLines, fs):
 
     estLevel = np.hstack((estL[0, 0], estL[0], estL[0, -1]))
     targetLevel = mag2db(estLevel)
-    targetLevel = targetLevel - np.array([15, 10, 0, 0, 0, 0, 0, 0, 5, 30])
+    targetLevel = targetLevel - np.array([5, 0, 0, 0, 0, 0, 0, 0, 5, 30])
     sos, _ = designGEQ(targetLevel)
     output_data[-1] = sos
 

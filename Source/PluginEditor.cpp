@@ -153,19 +153,20 @@ void nnAudioProcessorEditor::Convert_ButtonClick()
 	audioProcessor.irloader.reset();
 	audioProcessor.irloader.loadImpulseResponse(result, juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no, 0);
 
-	audioProcessor.MyFilter_Init(&audioProcessor.AbsorptionFilter);
-	audioProcessor.MyFilter_Init(&audioProcessor.InitialLevelFilter);
-
 	for (size_t i = 0; i < absorption_coefs.size(); ++i)
 	{
 		for (size_t j = 0; j < absorption_coefs[i].size(); ++j)
 		{
-			audioProcessor.AbsorptionFilter.filterCoeff[i][j].b0 = absorption_coefs[i][j][0] / absorption_coefs[i][j][3];
-			audioProcessor.AbsorptionFilter.filterCoeff[i][j].b1 = absorption_coefs[i][j][1] / absorption_coefs[i][j][3];
-			audioProcessor.AbsorptionFilter.filterCoeff[i][j].b2 = absorption_coefs[i][j][2] / absorption_coefs[i][j][3];
-			audioProcessor.AbsorptionFilter.filterCoeff[i][j].a1 = absorption_coefs[i][j][4] / absorption_coefs[i][j][3];
-			audioProcessor.AbsorptionFilter.filterCoeff[i][j].a2 = absorption_coefs[i][j][5] / absorption_coefs[i][j][3];
+            auto b0 = absorption_coefs[i][j][0];
+            auto b1 = absorption_coefs[i][j][1];
+            auto b2 = absorption_coefs[i][j][2];
 
+            auto a0 = absorption_coefs[i][j][3];
+            auto a1 = absorption_coefs[i][j][4];
+            auto a2 = absorption_coefs[i][j][5];
+
+            juce::IIRCoefficients coeffs(b0, b1, b2, a0, a1, a2);
+            audioProcessor.absorptionFilters[i][j].setCoefficients(coeffs);
 		}
 	}
 
@@ -182,13 +183,8 @@ void nnAudioProcessorEditor::Convert_ButtonClick()
         juce::IIRCoefficients coeffs(b0, b1, b2, a0, a1, a2);
         audioProcessor.initialFiltersL[j].setCoefficients(coeffs);
         audioProcessor.initialFiltersR[j].setCoefficients(coeffs);
-
-		//DBG(".AbsorptionFilter.filterCoeff" <<  j << ",  " << audioProcessor.InitialLevelFilter.filterCoeff[1][j].a2);
 	}
-
-	
 }
-
 
 void nnAudioProcessorEditor::resized()
 {

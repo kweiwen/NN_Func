@@ -65,57 +65,29 @@ public:
 
     pybind11::scoped_interpreter guard;
 
-	std::unique_ptr<CircularBuffer<double>> CB_1;
-	std::unique_ptr<CircularBuffer<double>> CB_2;
-	std::unique_ptr<CircularBuffer<double>> CB_3;
-	std::unique_ptr<CircularBuffer<double>> CB_4;
+	std::unique_ptr<CircularBuffer<double>> CB1;
+	std::unique_ptr<CircularBuffer<double>> CB2;
+	std::unique_ptr<CircularBuffer<double>> CB3;
+	std::unique_ptr<CircularBuffer<double>> CB4;
 
 	std::unique_ptr<CircularBuffer<double>> FdnOutput_L;
 	std::unique_ptr<CircularBuffer<double>> FdnOutput_R;
 
-	double feedbackLoop_1;
-	double feedbackLoop_2;
-	double feedbackLoop_3;
-	double feedbackLoop_4;
+	double feedbackLoop1;
+	double feedbackLoop2;
+	double feedbackLoop3;
+	double feedbackLoop4;
 
-	typedef struct Filter_Coeff
-	{
-		double b0;
-		double b1;
-		double b2;
-		double a1;
-		double a2;
-	}Filter_Coeff;
-
-	typedef struct Filter_XY
-	{
-		float xn1;
-		float xn2;
-		float yn1;
-		float yn2;
-	}Filter_XY;
-
-	typedef struct GEQ_Filter
-	{
-		Filter_Coeff filterCoeff[delaySize][bandSize];
-		Filter_XY  filterStatus[delaySize][bandSize];
-
-	}GEQ_Filter;
-
-	GEQ_Filter AbsorptionFilter;
-	GEQ_Filter InitialLevelFilter;
+	std::vector<std::vector<juce::IIRFilter>> absorptionFilters;
 
 	std::vector<juce::IIRFilter> initialFiltersL;
 	std::vector<juce::IIRFilter> initialFiltersR;
 
-	float DelayLine1;
-	float DelayLine2;
-	float DelayLine3;
-	float DelayLine4;
+	float delayLine1;
+	float delayLine2;
+	float delayLine3;
+	float delayLine4;
 
-	void MyFilter_Init(GEQ_Filter *pFilter);
-	double MyFilter_Process(GEQ_Filter *pFilter, double pSampleIn, int DelayIndex);
-	
 	juce::AudioParameterFloat* Mix;
 	juce::AudioParameterFloat* Volume;
 	juce::AudioParameterFloat* Ratio;
