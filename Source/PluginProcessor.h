@@ -70,8 +70,8 @@ public:
 	std::unique_ptr<CircularBuffer<double>> CB3;
 	std::unique_ptr<CircularBuffer<double>> CB4;
 
-	std::unique_ptr<CircularBuffer<double>> FdnOutput_L;
-	std::unique_ptr<CircularBuffer<double>> FdnOutput_R;
+    std::vector<double> bufferL;
+    std::vector<double> bufferR;
 
 	double feedbackLoop1;
 	double feedbackLoop2;
@@ -88,13 +88,12 @@ public:
 	float delayLine3;
 	float delayLine4;
 
-	juce::AudioParameterFloat* Mix;
-	juce::AudioParameterFloat* Volume;
-	juce::AudioParameterFloat* Ratio;
-	float nnAudioProcessor::processSignalThroughFilters(float xn, std::vector<juce::IIRFilter>& filters);
+	juce::AudioParameterFloat* level1;
+	juce::AudioParameterFloat* level2;
+	juce::AudioParameterFloat* level3;
 	juce::dsp::Convolution irloader;
 	juce::dsp::ProcessSpec spec;
 private:
-    //==============================================================================
+    float nnAudioProcessor::processSignalThroughFilters(float xn, std::vector<juce::IIRFilter>& filters);
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (nnAudioProcessor)
 };

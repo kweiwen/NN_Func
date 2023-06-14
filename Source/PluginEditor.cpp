@@ -131,7 +131,7 @@ void nnAudioProcessorEditor::openFileChooser()
 {
 	const auto callback = [this](const juce::FileChooser& chooser)
 	{
-		if (chooser.getResult().getFileExtension() == ".wav" | chooser.getResult().getFileExtension() == ".mp3")
+		if (chooser.getResult().getFileExtension() == ".wav" || chooser.getResult().getFileExtension() == ".mp3")
 		{
 			table.clean_entry();
 			on_decode_room_impulse_response(chooser.getResult().getFullPathName().toStdString(), audioProcessor.delayLine1, audioProcessor.delayLine2, audioProcessor.delayLine3, audioProcessor.delayLine4);
