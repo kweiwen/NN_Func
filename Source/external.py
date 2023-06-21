@@ -259,8 +259,8 @@ def RIR2FDN(f, ch1, ch2, ch3, ch4):
     return output_data.tolist()
 
 
-def demo_RIR2FDN():
-    fp = "D:\lixin25\Desktop\singleslope_00006_sh_rirs.wav"
+def demo_RIR2FDN():	
+    fp = "C:\\Python37\\Lib\\DecayFitNet\\data\\exampleRIRs\\singleslope_00006_sh_rirs.wav"
     output_data = RIR2FDN(fp, 1021, 2029, 3001, 4093)
     return np.array(output_data)
 
